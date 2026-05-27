@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Huling Hamon: El Filibusterismo Matching Challenge</title>
+<style>
+:root{
+  --maroon:#721536;
+  --dark:#321020;
+  --gold:#f7c948;
+  --cream:#fff8e6;
+  --green:#1fa463;
+  --red:#d94a4a;
+  --blue:#1d6fa5;
+  --ink:#2b241f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Trebuchet MS",Arial,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 15% 12%, #fff0a6, transparent 28%),
+    radial-gradient(circle at 85% 18%, #ffc8dd, transparent 28%),
+    linear-gradient(135deg,#fff7df,#ffe4cb,#ffdce8);
+  min-height:100vh;
+}
+header{
+  background:linear-gradient(135deg,var(--dark),var(--maroon),#b83b51);
+  color:white;
+  text-align:center;
+  padding:32px 16px;
+  border-bottom:8px solid var(--gold);
+}
+header h1{
+  margin:0;
+  font-size:clamp(28px,5vw,56px);
+  text-shadow:0 4px 0 #0005;
+}
+header p{font-size:18px;margin:8px 0 0}
+main{max-width:1120px;margin:auto;padding:18px}
+.card{
+  background:rgba(255,253,247,.97);
+  border:2px solid #ecd59d;
+  border-radius:26px;
+  padding:22px;
+  margin:18px 0;
+  box-shadow:0 14px 32px #72153626;
+}
+.hidden{display:none!important}
+.center{text-align:center}
+.badge{
+  display:inline-block;
+  background:var(--gold);
+  color:#4a2600;
+  padding:8px 14px;
+  border-radius:999px;
+  font-weight:900;
+}
+.avatars{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin:18px 0;
+}
+.avatar{
+  border:3px solid #ead29a;
+  border-radius:20px;
+  padding:12px;
+  background:#fffaf0;
+  cursor:pointer;
+  transition:.25s;
+  font-weight:900;
+}
+.avatar:hover{transform:translateY(-5px)}
+.avatar.selected{
+  border-color:var(--maroon);
+  background:#ffe2ec;
+  box-shadow:0 0 0 5px #72153622;
+}
+.avatar img{
+  width:100%;
+  max-height:175px;
+  object-fit:contain;
+  animation:float 2s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+button{
+  border:0;
+  border-radius:999px;
+  padding:13px 21px;
+  cursor:pointer;
+  font-weight:900;
+  margin:7px;
+  color:white;
+  background:linear-gradient(135deg,var(--maroon),#b83b51);
+  box-shadow:0 5px 0 #4b0e23;
+}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #4b0e23}
+.musicBtn{background:linear-gradient(135deg,#1b5f8c,#2ea3d8);box-shadow:0 5px 0 #16445f}
+.goldBtn{background:linear-gradient(135deg,#aa6c00,#f4b400);box-shadow:0 5px 0 #734900}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin:14px 0;
+}
+.stat{
+  background:#fff1bd;
+  border:3px solid var(--gold);
+  border-radius:18px;
+  padding:12px;
+  font-weight:900;
+  text-align:center;
+}
+.stat big{font-size:30px;color:var(--maroon)}
+.progressBox{
+  height:22px;
+  border-radius:999px;
+  background:#f4dfb0;
+  overflow:hidden;
+  border:2px solid #c99b32;
+}
+#progressFill{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,var(--green),#7ddc99);
+  transition:.4s;
+}
+.dialogue{
+  background:#fff4cf;
+  border-left:8px solid var(--gold);
+  border-radius:16px;
+  padding:14px;
+  font-weight:900;
+  margin:14px 0;
+}
+.matchWrap{
+  position:relative;
+  overflow:auto;
+  padding:10px;
+}
+.matchGrid{
+  display:grid;
+  grid-template-columns:1fr 110px 1fr;
+  gap:14px;
+  min-width:780px;
+  position:relative;
+}
+.item{
+  padding:14px;
+  margin:12px 0;
+  border:2px solid #c9b385;
+  border-radius:15px;
+  background:#fffdf3;
+  cursor:pointer;
+  min-height:58px;
+  font-weight:900;
+  transition:.2s;
+}
+.item:hover{transform:scale(1.02)}
+.selected{background:#ffe0ea;border-color:var(--maroon)!important}
+.locked{opacity:.88}
+.correctItem{background:#e7f8ee!important;border-color:var(--green)!important}
+.wrongItem{background:#ffe7e7!important;border-color:var(--red)!important}
+.middleArrow{text-align:center;font-size:42px;color:var(--maroon);padding-top:82px}
+svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.col{position:relative;z-index:3}
+#countdownOverlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(35,8,20,.86);
+  color:white;
+  z-index:9999;
+  font-size:clamp(70px,15vw,150px);
+  font-weight:900;
+  text-shadow:0 10px 0 #0006;
+}
+.pulse{animation:pulse .55s ease}
+@keyframes pulse{0%{transform:scale(.5);opacity:.2}100%{transform:scale(1);opacity:1}}
+.result{text-align:center;font-size:24px}
+.result img{width:140px;animation:pop .7s ease}
+@keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+.award{
+  display:inline-block;
+  padding:14px 22px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#fff1bd,#ffd166);
+  border:3px solid var(--gold);
+  font-size:26px;
+  font-weight:900;
+  color:var(--maroon);
+}
+.confetti{
+  position:fixed;
+  top:-20px;
+  width:10px;
+  height:18px;
+  opacity:.95;
+  animation:fall 3s linear forwards;
+  z-index:999;
+}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@media(max-width:850px){
+  .avatars{grid-template-columns:repeat(2,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  main{padding:10px}
+  .card{padding:15px;border-radius:18px}
+  button{width:100%;margin:6px 0}
+  .matchGrid{grid-template-columns:1fr;min-width:0}
+  .middleArrow, svg{display:none}
+  .item{font-size:15px}
+}
+
+#audioUnlock{
+  position:fixed;
+  inset:0;
+  background:rgba(35,8,20,.92);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  z-index:10000;
+  padding:20px;
+}
+#audioUnlock .box{
+  max-width:520px;
+  background:rgba(255,255,255,.08);
+  border:2px solid #f7c948;
+  border-radius:28px;
+  padding:28px;
+  box-shadow:0 20px 60px #0008;
+}
+#audioUnlock h2{
+  font-size:clamp(30px,6vw,52px);
+  margin:0 0 10px;
+}
+#audioUnlock button{
+  font-size:22px;
+  background:linear-gradient(135deg,#aa6c00,#f4b400);
+  box-shadow:0 5px 0 #734900;
+}
+
+</style>
+</head>
+<body>
+
+<div id="audioUnlock">
+  <div class="box">
+    <h2>🔊 Enable Sounds</h2>
+    <p>Para gumana ang music at sound effects sa Android at Apple devices, i-tap muna ito bago magsimula.</p>
+    <button onclick="unlockAudioManual()">🔓 Tap to Enable Sounds</button>
+    <p style="font-size:14px;opacity:.85">Required ito sa iPhone/iPad Safari at ilang Android browser.</p>
+  </div>
+</div>
+
+<header>
+  <h1>🎓 Huling Hamon</h1>
+  <p>Final Boss Round: <i>El Filibusterismo</i> Matching Challenge</p>
+</header>
+
+<main>
+<section id="hub" class="card center">
+  <span class="badge">Demo Teaching Culminating Activity</span>
+  <h2>👤 Piliin ang Avatar para sa Huling Hamon</h2>
+  <p>Pagtapatin ang mahahalagang impormasyon tungkol sa <i>El Filibusterismo</i>. May timer, lives, progress bar, sounds, at award ceremony sa dulo.</p>
+
+  <div class="avatars">
+    <div class="avatar" onclick="selectAvatar(this,'Rizal','data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNmZmYzYzQnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODInIHI9JzQ0JyBmaWxsPScjZjBjMDlhJy8+CjxwYXRoIGQ9J004MiA3OGMxNi01NSA5Mi01MiAxMDAgNS0zNC0yMC03MC0xOC0xMDAtNXonIGZpbGw9JyMyZDFkMTcnLz4KPGNpcmNsZSBjeD0nMTEyJyBjeT0nODgnIHI9JzUnLz48Y2lyY2xlIGN4PScxNDgnIGN5PSc4OCcgcj0nNScvPgo8cGF0aCBkPSdNMTA2IDExMnEyNCAxOCA0OCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM2YjNhMjUnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNzIgMjI1YzgtNzIgMTA4LTg4IDExNiAweicgZmlsbD0nIzI1MjUyNScvPgo8cmVjdCB4PScxMDUnIHk9JzE0MCcgd2lkdGg9JzUwJyBoZWlnaHQ9Jzc4JyBmaWxsPScjZmZmJy8+Cjx0ZXh0IHg9JzEzMCcgeT0nMjQ2JyBmb250LWZhbWlseT0nQXJpYWwnIGZvbnQtc2l6ZT0nMjQnIGZpbGw9JyM3MjE1MzYnIHRleHQtYW5jaG9yPSdtaWRkbGUnPlJpemFsPC90ZXh0Pgo8L3N2Zz4=')">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNmZmYzYzQnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODInIHI9JzQ0JyBmaWxsPScjZjBjMDlhJy8+CjxwYXRoIGQ9J004MiA3OGMxNi01NSA5Mi01MiAxMDAgNS0zNC0yMC03MC0xOC0xMDAtNXonIGZpbGw9JyMyZDFkMTcnLz4KPGNpcmNsZSBjeD0nMTEyJyBjeT0nODgnIHI9JzUnLz48Y2lyY2xlIGN4PScxNDgnIGN5PSc4OCcgcj0nNScvPgo8cGF0aCBkPSdNMTA2IDExMnEyNCAxOCA0OCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM2YjNhMjUnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNzIgMjI1YzgtNzIgMTA4LTg4IDExNiAweicgZmlsbD0nIzI1MjUyNScvPgo8cmVjdCB4PScxMDUnIHk9JzE0MCcgd2lkdGg9JzUwJyBoZWlnaHQ9Jzc4JyBmaWxsPScjZmZmJy8+Cjx0ZXh0IHg9JzEzMCcgeT0nMjQ2JyBmb250LWZhbWlseT0nQXJpYWwnIGZvbnQtc2l6ZT0nMjQnIGZpbGw9JyM3MjE1MzYnIHRleHQtYW5jaG9yPSdtaWRkbGUnPlJpemFsPC90ZXh0Pgo8L3N2Zz4="><div>Dr. Jose Rizal</div>
+    </div>
+    <div class="avatar" onclick="selectAvatar(this,'Simoun','data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNlOGUwZmYnLz4KPHJlY3QgeD0nNzUnIHk9JzQwJyB3aWR0aD0nMTEwJyBoZWlnaHQ9JzI4JyByeD0nMTAnIGZpbGw9JyMxMTEnLz4KPHJlY3QgeD0nOTUnIHk9JzEwJyB3aWR0aD0nNzAnIGhlaWdodD0nNDUnIHJ4PSc4JyBmaWxsPScjMTExJy8+CjxjaXJjbGUgY3g9JzEzMCcgY3k9JzkyJyByPSc0MicgZmlsbD0nI2Q5YTc3ZicvPgo8Y2lyY2xlIGN4PScxMTInIGN5PSc5Micgcj0nMTQnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzExMScgc3Ryb2tlLXdpZHRoPSc1Jy8+CjxjaXJjbGUgY3g9JzE0OCcgY3k9JzkyJyByPScxNCcgZmlsbD0nbm9uZScgc3Ryb2tlPScjMTExJyBzdHJva2Utd2lkdGg9JzUnLz4KPHBhdGggZD0nTTEyNiA5Mmg4JyBzdHJva2U9JyMxMTEnIHN0cm9rZS13aWR0aD0nNCcvPgo8cGF0aCBkPSdNMTAzIDEyMHEyNyAxOCA1NCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM1MTJiMWQnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNjggMjI1YzEwLTc4IDExNC03OCAxMjQgMHonIGZpbGw9JyMyZDJkMmQnLz4KPHRleHQgeD0nMTMwJyB5PScyNDYnIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC1zaXplPScyNCcgZmlsbD0nIzcyMTUzNicgdGV4dC1hbmNob3I9J21pZGRsZSc+U2ltb3VuPC90ZXh0Pgo8L3N2Zz4=')">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNlOGUwZmYnLz4KPHJlY3QgeD0nNzUnIHk9JzQwJyB3aWR0aD0nMTEwJyBoZWlnaHQ9JzI4JyByeD0nMTAnIGZpbGw9JyMxMTEnLz4KPHJlY3QgeD0nOTUnIHk9JzEwJyB3aWR0aD0nNzAnIGhlaWdodD0nNDUnIHJ4PSc4JyBmaWxsPScjMTExJy8+CjxjaXJjbGUgY3g9JzEzMCcgY3k9JzkyJyByPSc0MicgZmlsbD0nI2Q5YTc3ZicvPgo8Y2lyY2xlIGN4PScxMTInIGN5PSc5Micgcj0nMTQnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzExMScgc3Ryb2tlLXdpZHRoPSc1Jy8+CjxjaXJjbGUgY3g9JzE0OCcgY3k9JzkyJyByPScxNCcgZmlsbD0nbm9uZScgc3Ryb2tlPScjMTExJyBzdHJva2Utd2lkdGg9JzUnLz4KPHBhdGggZD0nTTEyNiA5Mmg4JyBzdHJva2U9JyMxMTEnIHN0cm9rZS13aWR0aD0nNCcvPgo8cGF0aCBkPSdNMTAzIDEyMHEyNyAxOCA1NCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM1MTJiMWQnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNjggMjI1YzEwLTc4IDExNC03OCAxMjQgMHonIGZpbGw9JyMyZDJkMmQnLz4KPHRleHQgeD0nMTMwJyB5PScyNDYnIGZvbnQtZmFtaWx5PSdBcmlhbCcgZm9udC1zaXplPScyNCcgZmlsbD0nIzcyMTUzNicgdGV4dC1hbmNob3I9J21pZGRsZSc+U2ltb3VuPC90ZXh0Pgo8L3N2Zz4="><div>Simoun</div>
+    </div>
+    <div class="avatar" onclick="selectAvatar(this,'Basilio','data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNkZmY3ZTgnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODgnIHI9JzQyJyBmaWxsPScjZWZiZDkyJy8+CjxwYXRoIGQ9J004OCA3NXE0Mi00NSA4NiAwdjE2cS00Mi0yMC04NiAweicgZmlsbD0nIzJmMjExOCcvPgo8Y2lyY2xlIGN4PScxMTQnIGN5PSc5NCcgcj0nNScvPjxjaXJjbGUgY3g9JzE0NicgY3k9Jzk0JyByPSc1Jy8+CjxwYXRoIGQ9J00xMDggMTIwcTIyIDE2IDQ0IDAnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzZiM2EyNScgc3Ryb2tlLXdpZHRoPSc1Jy8+CjxwYXRoIGQ9J003MiAyMjVjMTAtNzQgMTA2LTc0IDExNiAweicgZmlsbD0nIzFkNmZhNScvPgo8cmVjdCB4PScxNjUnIHk9JzE0NScgd2lkdGg9JzQyJyBoZWlnaHQ9JzYwJyByeD0nNicgZmlsbD0nI2Y3Yzk0OCcvPgo8dGV4dCB4PScxODYnIHk9JzE3OCcgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzE4JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz7wn5OaPC90ZXh0Pgo8dGV4dCB4PScxMzAnIHk9JzI0NicgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI0JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz5CYXNpbGlvPC90ZXh0Pgo8L3N2Zz4=')">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNkZmY3ZTgnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODgnIHI9JzQyJyBmaWxsPScjZWZiZDkyJy8+CjxwYXRoIGQ9J004OCA3NXE0Mi00NSA4NiAwdjE2cS00Mi0yMC04NiAweicgZmlsbD0nIzJmMjExOCcvPgo8Y2lyY2xlIGN4PScxMTQnIGN5PSc5NCcgcj0nNScvPjxjaXJjbGUgY3g9JzE0NicgY3k9Jzk0JyByPSc1Jy8+CjxwYXRoIGQ9J00xMDggMTIwcTIyIDE2IDQ0IDAnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzZiM2EyNScgc3Ryb2tlLXdpZHRoPSc1Jy8+CjxwYXRoIGQ9J003MiAyMjVjMTAtNzQgMTA2LTc0IDExNiAweicgZmlsbD0nIzFkNmZhNScvPgo8cmVjdCB4PScxNjUnIHk9JzE0NScgd2lkdGg9JzQyJyBoZWlnaHQ9JzYwJyByeD0nNicgZmlsbD0nI2Y3Yzk0OCcvPgo8dGV4dCB4PScxODYnIHk9JzE3OCcgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzE4JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz7wn5OaPC90ZXh0Pgo8dGV4dCB4PScxMzAnIHk9JzI0NicgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI0JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz5CYXNpbGlvPC90ZXh0Pgo8L3N2Zz4="><div>Basilio</div>
+    </div>
+    <div class="avatar" onclick="selectAvatar(this,'Isagani','data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNmZmU0ZDYnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODYnIHI9JzQyJyBmaWxsPScjZWZiZDkyJy8+CjxwYXRoIGQ9J004OCA4MHEzNS01MCA4NC04Yy0yNS01LTU1LTMtODQgOHonIGZpbGw9JyMyZDFkMTcnLz4KPGNpcmNsZSBjeD0nMTE0JyBjeT0nOTInIHI9JzUnLz48Y2lyY2xlIGN4PScxNDYnIGN5PSc5Micgcj0nNScvPgo8cGF0aCBkPSdNMTA4IDExN3EyMiAxNCA0NCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM2YjNhMjUnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNzIgMjI1YzEwLTc0IDEwNi03NCAxMTYgMHonIGZpbGw9JyM3YzRhMjgnLz4KPHBhdGggZD0nTTE5MCA3MGwzOC0zOCcgc3Ryb2tlPScjNzIxNTM2JyBzdHJva2Utd2lkdGg9JzgnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPgo8dGV4dCB4PScxMzAnIHk9JzI0NicgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI0JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz5Jc2FnYW5pPC90ZXh0Pgo8L3N2Zz4=')">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CjxyZWN0IHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyByeD0nMzAnIGZpbGw9JyNmZmU0ZDYnLz4KPGNpcmNsZSBjeD0nMTMwJyBjeT0nODYnIHI9JzQyJyBmaWxsPScjZWZiZDkyJy8+CjxwYXRoIGQ9J004OCA4MHEzNS01MCA4NC04Yy0yNS01LTU1LTMtODQgOHonIGZpbGw9JyMyZDFkMTcnLz4KPGNpcmNsZSBjeD0nMTE0JyBjeT0nOTInIHI9JzUnLz48Y2lyY2xlIGN4PScxNDYnIGN5PSc5Micgcj0nNScvPgo8cGF0aCBkPSdNMTA4IDExN3EyMiAxNCA0NCAwJyBmaWxsPSdub25lJyBzdHJva2U9JyM2YjNhMjUnIHN0cm9rZS13aWR0aD0nNScvPgo8cGF0aCBkPSdNNzIgMjI1YzEwLTc0IDEwNi03NCAxMTYgMHonIGZpbGw9JyM3YzRhMjgnLz4KPHBhdGggZD0nTTE5MCA3MGwzOC0zOCcgc3Ryb2tlPScjNzIxNTM2JyBzdHJva2Utd2lkdGg9JzgnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPgo8dGV4dCB4PScxMzAnIHk9JzI0NicgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI0JyBmaWxsPScjNzIxNTM2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJz5Jc2FnYW5pPC90ZXh0Pgo8L3N2Zz4="><div>Isagani</div>
+    </div>
+  </div>
+
+  <h3 id="playerName">Avatar: Wala pa</h3>
+  <button class="goldBtn" onclick="startIntro()">🚀 Simulan ang Final Boss Round</button>
+  <button class="musicBtn" onclick="toggleMusic()">🎵 Play / Pause Music</button>
+</section>
+
+<section id="intro" class="card center hidden">
+  <h2>🎬 Huling Hamon: El Filibusterismo Challenge</h2>
+  <div id="introAvatar"></div>
+  <div class="dialogue" id="introDialogue"></div>
+  <p><b>Layunin:</b> Maitapat ang Hanay A sa wastong sagot sa Hanay B bago matapos ang oras.</p>
+  <button onclick="beginCountdown()">⚔️ Handa na ako!</button>
+</section>
+
+<section id="game" class="card hidden">
+  <div class="stats">
+    <div class="stat">Score<br><big><span id="score">0</span>/5</big></div>
+    <div class="stat">Lives<br><big id="lives">❤️❤️❤️</big></div>
+    <div class="stat">Timer<br><big><span id="timer">60</span>s</big></div>
+    <div class="stat">Bonus<br><big id="bonus">0</big></div>
+  </div>
+
+  <p><b>Progress:</b> <span id="progressText">0/5 matched</span></p>
+  <div class="progressBox"><div id="progressFill"></div></div>
+
+  <div class="dialogue" id="gameDialogue">Click muna sa Hanay A, pagkatapos ay click sa tamang sagot sa Hanay B.</div>
+
+  <div class="matchWrap">
+    <svg id="svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <polygon points="0 0,10 3,0 6" fill="#721536"></polygon>
+        </marker>
+      </defs>
+    </svg>
+    <div class="matchGrid">
+      <div class="col"><h3>Hanay A</h3><div id="left"></div></div>
+      <div class="middleArrow">➡️</div>
+      <div class="col"><h3>Hanay B</h3><div id="right"></div></div>
+    </div>
+  </div>
+
+  <button onclick="finishGame()">🏁 Tapusin ang Hamon</button>
+  <button onclick="resetGame()">🔄 Ulitin</button>
+  <button onclick="goHome()">🏠 Main Hub</button>
+</section>
+
+<section id="result" class="card result hidden">
+  <h2 id="finalTitle">Mahusay!</h2>
+  <div id="finalAvatar"></div>
+  <p id="finalMessage"></p>
+  <div class="award" id="awardBadge">🏅 Award</div>
+
+  <div class="stats">
+    <div class="stat">Final Score<br><big><span id="finalScore">0</span>/5</big></div>
+    <div class="stat">Lives Left<br><big id="finalLives">0</big></div>
+    <div class="stat">Time Left<br><big><span id="finalTime">0</span>s</big></div>
+    <div class="stat">Stars<br><big id="finalStars">☆☆☆☆☆</big></div>
+  </div>
+
+  <button onclick="resetGame()">🔄 Sagutan Muli</button>
+  <button onclick="goHome()">🏠 Main Hub</button>
+</section>
+</main>
+
+<div id="countdownOverlay" class="hidden">3</div>
+
+<script>
+let avatarName = "";
+let avatarImg = "";
+let selectedLeft = null;
+let score = 0;
+let lives = 3;
+let timeLeft = 60;
+let bonus = 0;
+let gameStarted = false;
+let timerInterval = null;
+let connections = [];
+
+const pairs = [
+  ["Sumulat ng El Filibusterismo", "Dr. Jose P. Rizal"],
+  ["Pinag-alayan ng nobela", "GomBurZa"],
+  ["Taong tumulong sa pagpapalimbag", "Valentin Ventura"],
+  ["Lugar kung saan nailathala ang nobela", "Ghent, Belgium"],
+  ["Taon ng pagkalathala ng nobela", "1891"]
+];
+
+const dialogues = {
+  Rizal: "Handa ka na bang harapin ang huling pagsubok? Gamitin ang talino para sa bayan!",
+  Simoun: "Patunayan mo ang iyong kaalaman. Ang bawat tamang tugma ay isang hakbang sa tagumpay!",
+  Basilio: "Maging maingat sa pagpili. Basahin, unawain, at itapat ang wastong sagot.",
+  Isagani: "Ipamalas ang tapang at dunong. Simulan na ang huling hamon!"
+};
+
+function selectAvatar(el, name, img){
+  document.querySelectorAll(".avatar").forEach(x => x.classList.remove("selected"));
+  el.classList.add("selected");
+  avatarName = name;
+  avatarImg = img;
+  document.getElementById("playerName").innerText = "Avatar: " + name;
+  playClick();
+}
+
+function startIntro(){
+  unlockAudioManual();
+  if(!avatarName){
+    alert("Pumili muna ng avatar.");
+    return;
+  }
+  document.getElementById("hub").classList.add("hidden");
+  document.getElementById("intro").classList.remove("hidden");
+  document.getElementById("introAvatar").innerHTML = `<img src="${avatarImg}" style="width:150px;animation:pop .7s ease">`;
+  document.getElementById("introDialogue").innerHTML = avatarName + ": “" + dialogues[avatarName] + "”";
+  playClick();
+}
+
+function beginCountdown(){
+  unlockAudioManual();
+  const overlay = document.getElementById("countdownOverlay");
+  let count = 3;
+  overlay.classList.remove("hidden");
+  overlay.textContent = count;
+  overlay.classList.add("pulse");
+  playClick();
+
+  const cd = setInterval(() => {
+    count--;
+    if(count > 0){
+      overlay.textContent = count;
+      overlay.classList.remove("pulse");
+      void overlay.offsetWidth;
+      overlay.classList.add("pulse");
+      playClick();
+    } else {
+      overlay.textContent = "SIMULAN!";
+      playCorrect();
+      setTimeout(() => {
+        clearInterval(cd);
+        overlay.classList.add("hidden");
+        startGame();
+      }, 650);
+    }
+  }, 900);
+}
+
+function startGame(){
+  unlockAudioManual();
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  score = 0;
+  lives = 3;
+  timeLeft = 60;
+  bonus = 0;
+  selectedLeft = null;
+  connections = [];
+  gameStarted = true;
+
+  renderGame();
+  updateStats();
+  startTimer();
+}
+
+function renderGame(){
+  document.getElementById("left").innerHTML = "";
+  document.getElementById("right").innerHTML = "";
+  resetSvg();
+
+  pairs.forEach((p, i) => {
+    document.getElementById("left").innerHTML +=
+      `<div class="item" id="L${i}" onclick="pickLeft(${i})">${i+1}. ${p[0]}</div>`;
+  });
+
+  const shuffled = [...pairs.map(x => x[1])].sort(() => Math.random() - .5);
+  shuffled.forEach((answer, i) => {
+    document.getElementById("right").innerHTML +=
+      `<div class="item" id="R${i}" onclick="pickRight('${answer.replace(/'/g, "\\'")}', ${i})">${answer}</div>`;
+  });
+}
+
+function pickLeft(i){
+  if(!gameStarted) return;
+  if(document.getElementById("L"+i).classList.contains("locked")) return;
+
+  document.querySelectorAll("#left .item").forEach(x => x.classList.remove("selected"));
+  document.getElementById("L"+i).classList.add("selected");
+  selectedLeft = i;
+  playClick();
+}
+
+function pickRight(answer, rightIndex){
+  if(!gameStarted || selectedLeft === null) return;
+
+  const leftEl = document.getElementById("L"+selectedLeft);
+  const rightEl = document.getElementById("R"+rightIndex);
+
+  if(leftEl.classList.contains("locked") || rightEl.classList.contains("locked")) return;
+
+  const isCorrect = answer === pairs[selectedLeft][1];
+
+  connections.push({left:selectedLeft, rightIndex:rightIndex, correct:isCorrect});
+
+  leftEl.classList.add("locked");
+  rightEl.classList.add("locked");
+
+  if(isCorrect){
+    score++;
+    leftEl.classList.add("correctItem");
+    rightEl.classList.add("correctItem");
+    document.getElementById("gameDialogue").innerHTML = "✅ Tama! Mahusay ang pagtapat mo.";
+    playCorrect();
+  } else {
+    lives--;
+    leftEl.classList.add("wrongItem");
+    rightEl.classList.add("wrongItem");
+    document.getElementById("gameDialogue").innerHTML = "❌ Oops! Hindi tugma ang sagot. Bawas isang buhay.";
+    playWrong();
+  }
+
+  selectedLeft = null;
+  document.querySelectorAll("#left .item").forEach(x => x.classList.remove("selected"));
+
+  drawLines();
+  updateStats();
+
+  if(lives <= 0 || connections.length === pairs.length){
+    setTimeout(finishGame, 700);
+  }
+}
+
+function drawLines(){
+  resetSvg();
+  connections.forEach(c => {
+    const li = document.getElementById("L"+c.left);
+    const ri = document.getElementById("R"+c.rightIndex);
+    const svg = document.getElementById("svg");
+    const a = li.getBoundingClientRect();
+    const b = ri.getBoundingClientRect();
+    const s = svg.getBoundingClientRect();
+    const color = c.correct ? "#1fa463" : "#d94a4a";
+
+    svg.innerHTML +=
+      `<line x1="${a.right-s.left}" y1="${a.top+a.height/2-s.top}"
+             x2="${b.left-s.left}" y2="${b.top+b.height/2-s.top}"
+             stroke="${color}" stroke-width="5" marker-end="url(#arrow)"/>`;
+  });
+}
+
+function resetSvg(){
+  document.getElementById("svg").innerHTML = `
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0,10 3,0 6" fill="#721536"></polygon>
+      </marker>
+    </defs>`;
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if(!gameStarted) return;
+    timeLeft--;
+    updateStats();
+
+    if(timeLeft <= 10 && timeLeft > 0){
+      document.getElementById("timer").style.color = "#d94a4a";
+      playClick();
+    }
+
+    if(timeLeft <= 0){
+      finishGame();
+    }
+  }, 1000);
+}
+
+function updateStats(){
+  document.getElementById("score").textContent = score;
+  document.getElementById("lives").textContent = "❤️".repeat(lives) + "🤍".repeat(3-lives);
+  document.getElementById("timer").textContent = Math.max(0, timeLeft);
+  document.getElementById("bonus").textContent = bonus;
+
+  const progress = connections.length;
+  document.getElementById("progressText").textContent = progress + "/5 matched";
+  document.getElementById("progressFill").style.width = (progress/5*100) + "%";
+}
+
+function finishGame(){
+  if(!gameStarted) return;
+  gameStarted = false;
+  clearInterval(timerInterval);
+
+  if(score === 5 && timeLeft > 0){
+    bonus = Math.min(5, Math.ceil(timeLeft / 12));
+  }
+
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("finalAvatar").innerHTML =
+    `<img src="${avatarImg}" alt="avatar">`;
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("finalLives").textContent = lives;
+  document.getElementById("finalTime").textContent = Math.max(0, timeLeft);
+
+  let stars = Math.min(5, score + (bonus > 0 ? 1 : 0));
+  document.getElementById("finalStars").textContent = "★".repeat(stars) + "☆".repeat(5-stars);
+
+  let title = "";
+  let msg = "";
+  let award = "";
+
+  if(score === 5){
+    title = "🎉 Napakahusay, " + avatarName + "!";
+    msg = "Binabati kita sa pagtatapos ng Huling Hamon! Nakuha mo ang perfect score at pinatunayan mong mahusay ang iyong pag-unawa sa El Filibusterismo.";
+    award = "🥇 El Fili Master";
+    playFinish();
+    confetti();
+  } else if(score >= 4){
+    title = "👏 Mahusay, " + avatarName + "!";
+    msg = "Napakaganda ng iyong naging resulta. Kaunting paghasa pa at maaabot mo ang perfect score.";
+    award = "🥈 Rizal Scholar";
+    playCorrect();
+    confetti(35);
+  } else if(score >= 2){
+    title = "👍 Magaling na Pagsubok!";
+    msg = "May mga tamang tugma ka na. Balikan ang aralin at subukang muli para mas tumaas ang iyong puntos.";
+    award = "🥉 El Fili Explorer";
+    playCorrect();
+  } else {
+    title = "💪 Kaya Mo Pa!";
+    msg = "Huwag sumuko. Basahin muli ang mga pahayag at sagot, pagkatapos ay subukang muli.";
+    award = "📚 Kasaysayan Learner";
+    playWrong();
+  }
+
+  document.getElementById("finalTitle").innerHTML = title;
+  document.getElementById("finalMessage").innerHTML = msg;
+  document.getElementById("awardBadge").innerHTML = award;
+}
+
+function resetGame(){
+  clearInterval(timerInterval);
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  score = 0; lives = 3; timeLeft = 60; bonus = 0; connections = []; selectedLeft = null; gameStarted = true;
+  renderGame();
+  updateStats();
+  startTimer();
+  playClick();
+}
+
+function goHome(){
+  clearInterval(timerInterval);
+  gameStarted = false;
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("hub").classList.remove("hidden");
+  playClick();
+}
+
+/* SOUND SYSTEM - ANDROID + APPLE SAFE */
+let ctx;
+let musicPlaying = false;
+let musicTimer;
+let audioReady = false;
+
+function createAudioContext(){
+  if(!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return ctx;
+}
+
+function unlockAudioManual(){
+  try{
+    createAudioContext();
+
+    // Silent buffer unlock for iOS Safari / iPadOS
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    if(source.start) source.start(0);
+
+    // Tiny inaudible gain tone fallback
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(0);
+    osc.stop(ctx.currentTime + 0.03);
+
+    if(ctx.state === "suspended"){
+      ctx.resume();
+    }
+
+    audioReady = true;
+    const overlay = document.getElementById("audioUnlock");
+    if(overlay) overlay.style.display = "none";
+
+    // confirmation ting
+    setTimeout(() => playCorrect(), 80);
+  }catch(e){
+    audioReady = true;
+    const overlay = document.getElementById("audioUnlock");
+    if(overlay) overlay.style.display = "none";
+  }
+}
+
+function initAudio(){
+  createAudioContext();
+  if(ctx.state === "suspended"){
+    ctx.resume();
+  }
+}
+
+// extra unlock listeners for mobile browsers
+["touchstart","touchend","click","pointerdown"].forEach(evt=>{
+  document.addEventListener(evt, ()=>{
+    if(!audioReady){
+      unlockAudioManual();
+    }
+  }, {once:true, passive:true});
+});
+
+function sound(freq, start, duration, type="triangle", vol=.05){
+  try{
+    initAudio();
+    if(!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+    gain.gain.setValueAtTime(vol, ctx.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime + start);
+    osc.stop(ctx.currentTime + start + duration);
+  }catch(e){}
+}
+
+function playClick(){
+  sound(520,0,.06,"sine",.025);
+}
+
+function playCorrect(){
+  sound(900,0,.10,"triangle",.06);
+  sound(1300,.08,.15,"triangle",.045);
+}
+
+function playWrong(){
+  sound(300,0,.14,"sawtooth",.05);
+  sound(180,.14,.25,"sawtooth",.04);
+}
+
+function playFinish(){
+  const notes = [523,659,784,1046,1318,1046,784];
+  notes.forEach((n,i) => sound(n,i*.10,.20,"triangle",.045));
+
+  for(let i=0;i<14;i++){
+    sound(Math.random()*900+250,.75+i*.045,.03,"square",.018);
+  }
+}
+
+function toggleMusic(){
+  unlockAudioManual();
+  musicPlaying = !musicPlaying;
+
+  if(musicPlaying){
+    const notes = [392,440,494,523,494,440,392,330];
+    let i = 0;
+    clearInterval(musicTimer);
+    musicTimer = setInterval(() => {
+      sound(notes[i % notes.length],0,.15,"triangle",.022);
+      i++;
+    },260);
+  } else {
+    clearInterval(musicTimer);
+  }
+}
+
+function confetti(amount=75){
+  const colors = ["#f7c948","#721536","#1fa463","#1d6fa5","#d94a4a"];
+  for(let i=0;i<amount;i++){
+    const piece = document.createElement("div");
+    piece.className = "confetti";
+    piece.style.left = Math.random()*100 + "vw";
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDelay = Math.random()*0.7 + "s";
+    piece.style.transform = "rotate(" + Math.random()*360 + "deg)";
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3600);
+  }
+}
+
+window.addEventListener("resize", () => {
+  if(connections.length > 0) drawLines();
+});
+</script>
+</body>
+</html>
